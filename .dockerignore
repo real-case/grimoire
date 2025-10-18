@@ -1,0 +1,87 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.pytest_cache/
+htmlcov/
+.hypothesis/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Specs and planning
+specs/
+.specify/
+
+# Docker
+Dockerfile*
+.dockerignore
+docker-compose*.yml
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log*
+logs/
+
+# Temporary files
+*.tmp
+*.bak
+.temp/
+tmp/
+
+# Database files (local dev)
+*.db
+*.sqlite3
+
+# Secrets (should never be in image)
+*.pem
+*.key
+.env*
+!.env.example
