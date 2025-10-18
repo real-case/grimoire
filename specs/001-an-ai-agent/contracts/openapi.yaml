@@ -1,0 +1,550 @@
+openapi: 3.0.3
+info:
+  title: Grimoire Word Information API
+  description: |
+    Comprehensive word information API for English as a Foreign Language (EFL) learners.
+    Provides definitions, phonetics (IPA), usage examples, grammatical information,
+    synonyms/antonyms, difficulty levels (CEFR), and frequency data.
+  version: 1.0.0
+  contact:
+    name: Grimoire API Support
+  license:
+    name: MIT
+
+servers:
+  - url: https://api.grimoire.example.com/api/v1
+    description: Production server
+  - url: http://localhost:8000/api/v1
+    description: Development server
+
+tags:
+  - name: words
+    description: Word lookup and information retrieval
+
+paths:
+  /words/{word}:
+    get:
+      tags:
+        - words
+      summary: Lookup word information
+      description: |
+        Retrieve comprehensive information about an English word including definitions,
+        phonetics, usage examples, grammatical forms, difficulty level, and related words.
+
+        **Performance**:
+        - Cached entries: < 500ms response time (p95)
+        - Non-cached entries: < 2000ms response time (p95)
+
+        **Rate Limits**:
+        - Anonymous: 100 requests/hour, 10 requests/minute burst
+        - Authenticated: 1000 requests/hour
+      operationId: getWordInfo
+      parameters:
+        - name: word
+          in: path
+          required: true
+          description: The English word to look up (case-insensitive)
+          schema:
+            type: string
+            pattern: '^[a-zA-Z]+(-[a-zA-Z]+)*$'
+            minLength: 1
+            maxLength: 100
+          example: serendipity
+        - name: include_related
+          in: query
+          required: false
+          description: Include related words (synonyms, antonyms, derivatives)
+          schema:
+            type: boolean
+            default: true
+        - name: include_examples
+          in: query
+          required: false
+          description: Include usage examples
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Word information retrieved successfully
+          headers:
+            X-Cache-Status:
+              description: Cache hit/miss indicator
+              schema:
+                type: string
+                enum: [HIT, MISS]
+            X-RateLimit-Remaining:
+              description: Remaining requests in current window
+              schema:
+                type: integer
+            X-RateLimit-Reset:
+              description: Unix timestamp when rate limit resets
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WordResponse'
+              examples:
+                simple_word:
+                  summary: Simple word (cat)
+                  value:
+                    word: "cat"
+                    language: "en"
+                    phonetic:
+                      ipa: "/kæt/"
+                      audio_url: null
+                    definitions:
+                      - part_of_speech: "noun"
+                        definition: "A small furry animal with whiskers, claws, and a tail, commonly kept as a pet."
+                        usage_context: null
+                        examples:
+                          - "My cat loves to sleep in the sun."
+                          - "The cat caught a mouse in the garden."
+                          - "She adopted a stray cat from the shelter."
+                    grammatical_info:
+                      part_of_speech: "noun"
+                      plural_form: "cats"
+                      verb_forms: null
+                      adjective_forms: null
+                    learning_metadata:
+                      difficulty_level: "A1"
+                      cefr_level: "A1"
+                      frequency_rank: 1245
+                      frequency_band: "top-5000"
+                      style_tags: []
+                    related_words:
+                      - word: "kitten"
+                        relationship: "related"
+                        usage_notes: "A young cat"
+                      - word: "feline"
+                        relationship: "synonym"
+                        usage_notes: "More formal term"
+                    data_completeness:
+                      missing_fields: []
+                      completeness_percentage: 100
+                complex_word:
+                  summary: Complex word with multiple meanings (run)
+                  value:
+                    word: "run"
+                    language: "en"
+                    phonetic:
+                      ipa: "/rʌn/"
+                      audio_url: null
+                    definitions:
+                      - part_of_speech: "verb"
+                        definition: "Move at a speed faster than a walk, never having both or all feet on the ground at the same time."
+                        usage_context: null
+                        examples:
+                          - "She runs five miles every morning."
+                          - "The children ran across the playground."
+                          - "He ran to catch the bus."
+                      - part_of_speech: "verb"
+                        definition: "Be in charge of; manage or operate."
+                        usage_context: "business"
+                        examples:
+                          - "She runs a successful bakery."
+                          - "He runs the marketing department."
+                      - part_of_speech: "noun"
+                        definition: "An act or spell of running."
+                        usage_context: null
+                        examples:
+                          - "I went for a run in the park."
+                          - "She did a 10K run for charity."
+                    grammatical_info:
+                      part_of_speech: "verb"
+                      plural_form: "runs"
+                      verb_forms:
+                        base: "run"
+                        past_simple: "ran"
+                        past_participle: "run"
+                        present_participle: "running"
+                        third_person: "runs"
+                    learning_metadata:
+                      difficulty_level: "A2"
+                      cefr_level: "A2"
+                      frequency_rank: 134
+                      frequency_band: "top-1000"
+                      style_tags: []
+                    related_words:
+                      - word: "jog"
+                        relationship: "synonym"
+                        usage_notes: "Slower pace than running"
+                      - word: "sprint"
+                        relationship: "synonym"
+                        usage_notes: "Faster, short-distance running"
+                      - word: "runner"
+                        relationship: "derivative"
+                        usage_notes: "Person who runs"
+                      - word: "walk"
+                        relationship: "antonym"
+                        usage_notes: "Slower movement"
+                    data_completeness:
+                      missing_fields: []
+                      completeness_percentage: 100
+        '400':
+          description: Invalid word format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error_code: "INVALID_WORD_FORMAT"
+                message: "Word must contain only letters and hyphens"
+                details:
+                  field: "word"
+                  pattern: "^[a-zA-Z]+(-[a-zA-Z]+)*$"
+        '404':
+          description: Word not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WordNotFoundResponse'
+              example:
+                error_code: "WORD_NOT_FOUND"
+                message: "The word 'xyz' was not found in our database"
+                suggestions:
+                  - "Did you mean: 'yes'?"
+                  - "Did you mean: 'zoo'?"
+        '429':
+          description: Rate limit exceeded
+          headers:
+            Retry-After:
+              description: Seconds until rate limit resets
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error_code: "RATE_LIMIT_EXCEEDED"
+                message: "You have exceeded the rate limit of 100 requests per hour"
+                details:
+                  limit: 100
+                  window: "1 hour"
+                  retry_after: 3600
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error_code: "INTERNAL_ERROR"
+                message: "An unexpected error occurred. Please try again later."
+                details:
+                  request_id: "req_abc123"
+
+  /health:
+    get:
+      tags:
+        - system
+      summary: Health check
+      description: Check API health and service status
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded]
+                  timestamp:
+                    type: string
+                    format: date-time
+                  services:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        enum: [up, down]
+                      cache:
+                        type: string
+                        enum: [up, down]
+                      ai_service:
+                        type: string
+                        enum: [up, down]
+              example:
+                status: "healthy"
+                timestamp: "2025-10-13T12:00:00Z"
+                services:
+                  database: "up"
+                  cache: "up"
+                  ai_service: "up"
+
+components:
+  schemas:
+    WordResponse:
+      type: object
+      required:
+        - word
+        - language
+        - phonetic
+        - definitions
+        - grammatical_info
+        - learning_metadata
+        - data_completeness
+      properties:
+        word:
+          type: string
+          description: The queried word (normalized to lowercase)
+          example: "serendipity"
+        language:
+          type: string
+          description: Language code (ISO 639-1)
+          example: "en"
+        phonetic:
+          $ref: '#/components/schemas/PhoneticRepresentation'
+        definitions:
+          type: array
+          description: List of definitions (ordered by commonality)
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Definition'
+        grammatical_info:
+          $ref: '#/components/schemas/GrammaticalInformation'
+        learning_metadata:
+          $ref: '#/components/schemas/LearningMetadata'
+        related_words:
+          type: array
+          description: Related words (synonyms, antonyms, derivatives)
+          items:
+            $ref: '#/components/schemas/RelatedWord'
+          nullable: true
+        data_completeness:
+          $ref: '#/components/schemas/DataCompleteness'
+
+    PhoneticRepresentation:
+      type: object
+      required:
+        - ipa
+      properties:
+        ipa:
+          type: string
+          description: IPA phonetic transcription (enclosed in slashes)
+          pattern: '^/.*/$'
+          example: "/ˌserənˈdɪpɪti/"
+        audio_url:
+          type: string
+          format: uri
+          description: URL to pronunciation audio (nullable)
+          nullable: true
+          example: null
+
+    Definition:
+      type: object
+      required:
+        - part_of_speech
+        - definition
+        - examples
+      properties:
+        part_of_speech:
+          type: string
+          description: Part of speech
+          enum:
+            - noun
+            - verb
+            - adjective
+            - adverb
+            - pronoun
+            - preposition
+            - conjunction
+            - interjection
+            - determiner
+            - modal
+          example: "noun"
+        definition:
+          type: string
+          description: Clear, learner-appropriate definition
+          minLength: 10
+          maxLength: 500
+          example: "The occurrence and development of events by chance in a happy or beneficial way."
+        usage_context:
+          type: string
+          description: Context where this definition applies
+          nullable: true
+          example: "literary"
+        examples:
+          type: array
+          description: Usage examples (3-5 sentences)
+          minItems: 2
+          maxItems: 5
+          items:
+            type: string
+          example:
+            - "Meeting her was pure serendipity."
+            - "The serendipity of finding the perfect house on their first visit was remarkable."
+            - "He attributed his success to serendipity rather than planning."
+
+    GrammaticalInformation:
+      type: object
+      nullable: true
+      properties:
+        part_of_speech:
+          type: string
+          description: Primary part of speech (if unambiguous)
+          nullable: true
+          example: "noun"
+        plural_form:
+          type: string
+          description: Plural form for nouns
+          nullable: true
+          example: "children"
+        verb_forms:
+          type: object
+          description: Verb conjugations (if applicable)
+          nullable: true
+          properties:
+            base:
+              type: string
+              example: "run"
+            past_simple:
+              type: string
+              example: "ran"
+            past_participle:
+              type: string
+              example: "run"
+            present_participle:
+              type: string
+              example: "running"
+            third_person:
+              type: string
+              example: "runs"
+        adjective_forms:
+          type: object
+          description: Adjective comparative/superlative forms
+          nullable: true
+          properties:
+            comparative:
+              type: string
+              example: "better"
+            superlative:
+              type: string
+              example: "best"
+
+    LearningMetadata:
+      type: object
+      required:
+        - difficulty_level
+        - frequency_rank
+        - frequency_band
+      properties:
+        difficulty_level:
+          type: string
+          description: CEFR difficulty level
+          enum: [A1, A2, B1, B2, C1, C2, null]
+          nullable: true
+          example: "C1"
+        cefr_level:
+          type: string
+          description: CEFR level (same as difficulty_level)
+          enum: [A1, A2, B1, B2, C1, C2, null]
+          nullable: true
+          example: "C1"
+        frequency_rank:
+          type: integer
+          description: Word frequency rank (1 = most common)
+          minimum: 1
+          nullable: true
+          example: 12453
+        frequency_band:
+          type: string
+          description: Frequency band label
+          enum: [top-100, top-1000, top-5000, top-10000, rare, very-rare]
+          nullable: true
+          example: "top-10000"
+        style_tags:
+          type: array
+          description: Stylistic usage tags
+          items:
+            type: string
+            enum: [formal, informal, technical, archaic, slang, literary, regional, offensive]
+          example: ["formal", "literary"]
+
+    RelatedWord:
+      type: object
+      required:
+        - word
+        - relationship
+      properties:
+        word:
+          type: string
+          description: Related word text
+          example: "fortuitous"
+        relationship:
+          type: string
+          description: Type of relationship
+          enum: [synonym, antonym, derivative, compound, hypernym, hyponym, related]
+          example: "synonym"
+        usage_notes:
+          type: string
+          description: Explanation of usage differences
+          nullable: true
+          example: "Fortuitous emphasizes luck or chance, while serendipity emphasizes pleasant surprise"
+
+    DataCompleteness:
+      type: object
+      required:
+        - missing_fields
+        - completeness_percentage
+      properties:
+        missing_fields:
+          type: array
+          description: List of fields that are unavailable for this word
+          items:
+            type: string
+          example: []
+        completeness_percentage:
+          type: integer
+          description: Percentage of expected fields that are populated
+          minimum: 0
+          maximum: 100
+          example: 100
+
+    ErrorResponse:
+      type: object
+      required:
+        - error_code
+        - message
+      properties:
+        error_code:
+          type: string
+          description: Machine-readable error code
+          example: "INVALID_WORD_FORMAT"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Word must contain only letters and hyphens"
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+          nullable: true
+
+    WordNotFoundResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            suggestions:
+              type: array
+              description: Spelling suggestions for misspelled words
+              items:
+                type: string
+              example:
+                - "Did you mean: 'serendipity'?"
+                - "Did you mean: 'serenity'?"
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authenticated requests (future feature)
+
+security: []
