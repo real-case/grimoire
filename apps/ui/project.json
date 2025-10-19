@@ -1,0 +1,91 @@
+{
+  "name": "ui",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/ui/src",
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn dev",
+        "cwd": "apps/ui"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn build",
+        "cwd": "apps/ui"
+      },
+      "inputs": [
+        "{projectRoot}/src/**/*.{ts,tsx,js,jsx}",
+        "{projectRoot}/package.json",
+        "{projectRoot}/next.config.js",
+        "{projectRoot}/tailwind.config.ts"
+      ],
+      "outputs": ["{projectRoot}/.next"]
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn start",
+        "cwd": "apps/ui"
+      },
+      "dependsOn": ["build"]
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn test",
+        "cwd": "apps/ui"
+      },
+      "inputs": [
+        "{projectRoot}/src/**/*.{ts,tsx,js,jsx}",
+        "{projectRoot}/package.json"
+      ]
+    },
+    "e2e": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn test:e2e",
+        "cwd": "apps/ui"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn lint",
+        "cwd": "apps/ui"
+      }
+    },
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn type-check",
+        "cwd": "apps/ui"
+      }
+    },
+    "prisma-migrate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn prisma migrate dev",
+        "cwd": "apps/ui"
+      },
+      "inputs": [
+        "{projectRoot}/prisma/**/*"
+      ]
+    },
+    "prisma-generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn prisma generate",
+        "cwd": "apps/ui"
+      },
+      "inputs": [
+        "{projectRoot}/prisma/**/*"
+      ]
+    }
+  },
+  "tags": [],
+  "implicitDependencies": []
+}

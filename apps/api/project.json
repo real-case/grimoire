@@ -1,0 +1,58 @@
+{
+  "name": "api",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/api/src",
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "source ../../.venv/bin/activate && uvicorn src.main:app --reload",
+        "cwd": "apps/api"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "source ../../.venv/bin/activate && PYTHONPATH=. pytest",
+        "cwd": "apps/api"
+      },
+      "inputs": [
+        "{projectRoot}/src/**/*.py",
+        "{projectRoot}/tests/**/*.py",
+        "{projectRoot}/requirements.txt",
+        "{projectRoot}/pyproject.toml"
+      ]
+    },
+    "test-coverage": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "source ../../.venv/bin/activate && pytest --cov=src --cov-report=term-missing",
+        "cwd": "apps/api"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "source ../../.venv/bin/activate && ruff check . && mypy src",
+        "cwd": "apps/api"
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "source ../../.venv/bin/activate && black .",
+        "cwd": "apps/api"
+      }
+    },
+    "migrate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "source ../../.venv/bin/activate && alembic upgrade head",
+        "cwd": "apps/api"
+      }
+    }
+  },
+  "tags": [],
+  "implicitDependencies": []
+}

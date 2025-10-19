@@ -1,7 +1,24 @@
 {
   "name": "grimoire",
+  "version": "1.0.0",
   "packageManager": "yarn@4.9.1",
+  "scripts": {
+    "install:all": "npm install && cd apps/api && pip install -r requirements.txt && cd ../ui && yarn install",
+    "install:api": "cd apps/api && pip install -r requirements.txt",
+    "install:ui": "cd apps/ui && yarn install",
+    "lint:all": "nx run-many --target=lint --all",
+    "format:all": "nx run api:format && nx run ui:format",
+    "test:all": "nx run-many --target=test --all",
+    "test:all:parallel": "nx run-many --target=test --all --parallel",
+    "affected:test": "nx affected --target=test --base=main",
+    "affected:build": "nx affected --target=build --base=main",
+    "affected:lint": "nx affected --target=lint --base=main",
+    "affected:graph": "nx affected:graph --base=main",
+    "graph": "nx graph"
+  },
   "devDependencies": {
+    "@nx/workspace": "^21.6.5",
+    "nx": "^21.6.5",
     "prisma": "6.17.1"
   },
   "dependencies": {
