@@ -1,0 +1,40 @@
+// Grimoire Vocabulary Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("VOCABULARY_DATABASE_URL")
+}
+
+model VocabularyEntry {
+  id                    String   @id @default(uuid())
+  word                  String   // Normalized to lowercase
+  savedAt               DateTime @default(now())
+  lastModified          DateTime @updatedAt
+  userId                String?  // Nullable for now, required when auth added
+
+  // Original API data (immutable)
+  originalData          Json     // Complete word info from API
+
+  // User customizations (all nullable)
+  customDefinition      String?  @db.Text
+  customPronunciation   String?  @db.VarChar(200)
+  customExamples        String[] // Array of strings
+  customNotes           String?  @db.Text
+  customSynonyms        String[] // Array of strings
+  customAntonyms        String[] // Array of strings
+  customTags            String[] // Array of strings
+
+  // Edit tracking
+  editHistory           Json     @default("[]") // Array of EditRecord objects
+
+  // Indexes and constraints
+  @@unique([word, userId]) // One word per user
+  @@index([userId])        // Query by user
+  @@index([savedAt])       // Sort by save date
+  @@index([lastModified])  // Sort by edit date
+  @@map("vocabulary_entries")
+}

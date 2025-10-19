@@ -1,0 +1,422 @@
+# Tasks: Grimoire UI - Word Lookup and Editing Interface
+
+**Input**: Design documents from `/specs/002-grimoire-ui-implement/`
+**Prerequisites**: spec.md, research.md, data-model.md, contracts/api-routes.md
+**Tech Stack**: Next.js 14 (App Router), TypeScript, Tailwind CSS, Prisma, PostgreSQL
+
+**Tests**: Tests are not included in this task list as they were not explicitly requested in the feature specification. Tests can be added later following the testing strategy outlined in research.md (Jest + RTL for unit/integration, Playwright for E2E).
+
+**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
+
+## Format: `[ID] [P?] [Story] Description`
+- **[P]**: Can run in parallel (different files, no dependencies)
+- **[Story]**: Which user story this task belongs to (e.g., US1, US3, US2, US4)
+- File paths are relative to `grimoire-ui/` directory at repository root
+
+## Path Conventions
+This is a Next.js web application with the following structure:
+- **Frontend**: `grimoire-ui/src/` (Next.js App Router)
+- **API Routes**: `grimoire-ui/src/app/api/` (Next.js API routes)
+- **Database**: Separate PostgreSQL instance for vocabulary storage
+- **Backend**: Existing `src/` (FastAPI - feature 001, no changes needed)
+
+---
+
+## Phase 1: Setup (Shared Infrastructure)
+
+**Purpose**: Project initialization and basic Next.js structure
+
+- [X] T001 Create `grimoire-ui/` directory at repository root
+- [X] T002 Initialize Next.js 14 project with TypeScript and App Router in `grimoire-ui/`
+- [X] T003 [P] Install and configure Tailwind CSS in `grimoire-ui/tailwind.config.ts`
+- [X] T004 [P] Install Headless UI components: `yarn add @headlessui/react`
+- [X] T005 [P] Install Prisma ORM: `yarn add prisma @prisma/client && yarn add -D prisma`
+- [X] T006 [P] Install Zod for validation: `yarn add zod`
+- [X] T007 [P] Install React Hook Form: `yarn add react-hook-form`
+- [X] T008 [P] Configure TypeScript strict mode in `grimoire-ui/tsconfig.json`
+- [X] T009 Create `.env.local` template file with required environment variables (VOCABULARY_DATABASE_URL, FASTAPI_URL)
+- [X] T010 Create `grimoire-ui/src/lib/` directory for shared utilities
+- [X] T011 Create `grimoire-ui/src/types/` directory for TypeScript type definitions
+- [X] T012 Create `grimoire-ui/src/components/ui/` directory for base UI components
+
+**Checkpoint**: Project structure created, dependencies installed
+
+---
+
+## Phase 2: Foundational (Blocking Prerequisites)
+
+**Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
+
+**⚠️ CRITICAL**: No user story work can begin until this phase is complete
+
+- [X] T013 Create Prisma schema file at `grimoire-ui/prisma/schema.prisma` with VocabularyEntry model from data-model.md
+- [X] T014 Create PostgreSQL database `grimoire_vocabulary` (separate from existing backend database)
+- [X] T015 Run Prisma migration to create vocabulary_entries table: `yarn prisma migrate dev --name init`
+- [X] T016 Generate Prisma Client: `yarn prisma generate`
+- [X] T017 [P] Create database client singleton in `grimoire-ui/src/lib/db.ts` (Prisma Client instance)
+- [X] T018 [P] Create Zod schemas for API types in `grimoire-ui/src/types/word.ts` (WordData, EnhancedWordData, all nested types)
+- [X] T019 [P] Create Zod schemas for vocabulary types in `grimoire-ui/src/types/vocabulary.ts` (VocabularyEntry, CreateVocabularyRequest, UpdateVocabularyRequest, etc.)
+- [X] T020 [P] Create error handling utility in `grimoire-ui/src/lib/errors.ts` with error code mapping and user-friendly messages
+- [X] T021 [P] Create API client wrapper in `grimoire-ui/src/lib/api-client.ts` for fetch with error handling and Zod validation
+- [X] T022 Create root layout in `grimoire-ui/src/app/layout.tsx` with Tailwind CSS imports and basic HTML structure
+- [X] T023 Create global styles in `grimoire-ui/src/app/globals.css` with Tailwind directives
+
+**Checkpoint**: Foundation ready - database schema created, type system established, core utilities available. User story implementation can now begin in parallel.
+
+---
+
+## Phase 3: User Story 1 - Word Lookup (Priority: P1) 🎯 MVP Part 1
+
+**Goal**: Enable users to look up English words and view comprehensive word information from the API
+
+**Independent Test**: Enter a valid English word on the home page, submit, and verify that word information (definitions, pronunciation, examples, etc.) is displayed in an organized format. Test with words that have multiple meanings.
+
+### Implementation for User Story 1
+
+- [X] T024 [P] [US1] Create Next.js API route for word lookup proxy at `grimoire-ui/src/app/api/words/[word]/route.ts` (GET handler that proxies to FastAPI backend)
+- [X] T025 [P] [US1] Create WordLookupForm component in `grimoire-ui/src/components/WordLookupForm.tsx` (text input, submit button, loading state, Unicode support per FR-012)
+- [X] T026 [P] [US1] Create WordDisplay component in `grimoire-ui/src/components/WordDisplay.tsx` (displays all word fields with scrollable containers per FR-003, shows "Not available" for missing fields per FR-013)
+- [X] T027 [P] [US1] Create useWordLookup custom hook in `grimoire-ui/src/hooks/useWordLookup.ts` (manages search state, loading, errors, API calls)
+- [X] T028 [US1] Implement home page in `grimoire-ui/src/app/page.tsx` integrating WordLookupForm and WordDisplay components
+- [X] T029 [US1] Add input validation to WordLookupForm (prevent empty submissions, accept Unicode characters per FR-012)
+- [X] T030 [US1] Add error handling to word lookup API route (map FastAPI errors to user-friendly messages per error codes: WORD_NOT_FOUND, API_UNAVAILABLE, TIMEOUT, INVALID_INPUT)
+- [X] T031 [US1] Add loading indicator to WordLookupForm (visual feedback during API calls per FR-006)
+- [X] T032 [US1] Implement error display in WordDisplay component (show error messages per FR-007 and US4 acceptance scenarios)
+- [X] T033 [US1] Add caching to word lookup API route (5-minute cache for FastAPI responses per research.md)
+
+**Checkpoint**: At this point, users can look up words and see results. US1 is fully functional and testable independently. This is half of the MVP.
+
+---
+
+## Phase 4: User Story 3 - Save to Personal Database (Priority: P1) 🎯 MVP Part 2
+
+**Goal**: Enable users to save word information (original or edited) to their personal vocabulary database
+
+**Independent Test**: Look up a word, click save button, verify confirmation message is displayed and word appears in vocabulary list. Look up same word again and verify duplicate indicator is shown.
+
+**Note**: US3 is implemented before US2 because saving functionality is P1 (core journey completion) while editing is P2 (enhancement).
+
+### Implementation for User Story 3
+
+- [X] T034 [P] [US3] Create Next.js API route for creating vocabulary entries at `grimoire-ui/src/app/api/vocabulary/route.ts` (POST handler with Zod validation, duplicate detection)
+- [X] T035 [P] [US3] Create Next.js API route for listing vocabulary at `grimoire-ui/src/app/api/vocabulary/route.ts` (GET handler with pagination, sorting, filtering)
+- [X] T036 [P] [US3] Create VocabularyList component in `grimoire-ui/src/components/VocabularyList.tsx` (displays saved words with pagination)
+- [X] T037 [P] [US3] Create useVocabulary custom hook in `grimoire-ui/src/hooks/useVocabulary.ts` (manages vocabulary list state, CRUD operations)
+- [X] T038 [US3] Add SaveButton component to WordDisplay in `grimoire-ui/src/components/WordDisplay.tsx` (save action per FR-005)
+- [X] T039 [US3] Implement save functionality in useWordLookup hook (call POST /api/vocabulary with word data)
+- [X] T040 [US3] Add duplicate detection to save flow (check if word exists via unique constraint, show indicator per FR-008 and SC-006)
+- [X] T041 [US3] Add success confirmation message after save (toast notification per FR-011)
+- [X] T042 [US3] Create vocabulary list page at `grimoire-ui/src/app/vocabulary/page.tsx` integrating VocabularyList component
+- [X] T043 [US3] Add duplicate indicator to WordDisplay component (show when word already saved per FR-008)
+- [X] T044 [US3] Implement pagination controls in VocabularyList component (per GET /api/vocabulary contract)
+- [X] T045 [US3] Add sorting options to VocabularyList (by savedAt, lastModified, word per contract)
+
+**Checkpoint**: MVP COMPLETE! Users can look up words (US1) and save them to their vocabulary (US3). Core journey is functional end-to-end.
+
+---
+
+## Phase 5: User Story 2 - Edit Word Information (Priority: P2)
+
+**Goal**: Enable users to customize word information before saving, adding personal notes and modifying fields
+
+**Independent Test**: Look up a word, click on editable fields, modify content (including clearing to empty per clarification), verify edited fields are visually distinguished from original data, save with edits, and verify changes persist.
+
+### Implementation for User Story 2
+
+- [X] T046 [P] [US2] Create EditableField component in `grimoire-ui/src/components/EditableField.tsx` (inline editing with React Hook Form, visual distinction for edited fields per FR-010)
+- [X] T047 [P] [US2] Create Next.js API route for updating vocabulary entries at `grimoire-ui/src/app/api/vocabulary/[id]/route.ts` (PUT handler, update custom fields, track edit history)
+- [X] T048 [US2] Integrate React Hook Form into WordDisplay component for editable fields (useForm hook with default values from API)
+- [X] T049 [US2] Add support for editing all custom fields (customDefinition, customPronunciation, customExamples, customNotes, customSynonyms, customAntonyms, customTags per FR-004)
+- [X] T050 [US2] Implement dirty state tracking (formState.isDirty for unsaved changes warning per FR-009)
+- [X] T051 [US2] Add "discard changes" functionality (reset form to original API values)
+- [X] T052 [US2] Add unsaved changes warning when navigating away (prompt to save or discard per FR-009 and US2 acceptance scenario 2)
+- [X] T053 [US2] Implement visual distinction for edited fields (highlight or badge to show which fields have been modified per FR-010 and US2 acceptance scenario 3)
+- [X] T054 [US2] Update save functionality to include custom field values when saving edited words
+- [X] T055 [US2] Add edit history tracking to save/update operations (append EditRecord to editHistory JSON field per data-model.md)
+- [X] T056 [US2] Allow empty field values per clarification (users can clear any field per FR-004 update and clarification answer)
+
+**Checkpoint**: Users can now personalize word information before saving. US1, US3, and US2 are all functional independently.
+
+---
+
+## Phase 6: User Story 4 - Error Handling for Invalid Words (Priority: P2)
+
+**Goal**: Provide clear, helpful error messages for invalid inputs and API failures
+
+**Independent Test**: Enter non-existent word (gibberish), empty string, invalid characters, and trigger API unavailability (disconnect network). Verify appropriate error messages are displayed in each case.
+
+### Implementation for User Story 4
+
+- [X] T057 [P] [US4] Add client-side input validation to WordLookupForm (validate before submission, show inline errors for empty or invalid input per FR-012)
+- [X] T058 [P] [US4] Enhance error handling in word lookup API route (map all error types: 404, 500, 502, 504, network failures to error codes)
+- [X] T059 [US4] Implement error message display with retry suggestions (show actionable messages per US4 acceptance scenarios and error code mapping in research.md)
+- [X] T060 [US4] Add retry logic for transient errors (max 3 attempts with exponential backoff for retryable errors per research.md)
+- [X] T061 [US4] Create error boundary component at `grimoire-ui/src/app/error.tsx` (catch unexpected errors, show fallback UI)
+- [X] T062 [US4] Add error display for vocabulary CRUD operations (handle database errors, validation errors, duplicate errors with user-friendly messages)
+- [X] T063 [US4] Ensure error messages display within 1 second (per SC-004)
+
+**Checkpoint**: All error scenarios are handled gracefully. US1, US3, US2, and US4 are complete.
+
+---
+
+## Phase 7: Polish & Cross-Cutting Concerns
+
+**Purpose**: Improvements that affect multiple user stories and final touches
+
+- [ ] T064 [P] Create base UI components in `grimoire-ui/src/components/ui/` using Headless UI (Button, Input, Modal, Toast notification wrapper)
+- [ ] T065 [P] Add responsive design for mobile and desktop (Tailwind responsive classes per constraints in plan.md)
+- [ ] T066 [P] Implement toast notification system for success/error messages (using Headless UI Transition component)
+- [ ] T067 [P] Create Next.js API route for getting single vocabulary entry at `grimoire-ui/src/app/api/vocabulary/[id]/route.ts` (GET handler)
+- [ ] T068 [P] Create Next.js API route for deleting vocabulary entry at `grimoire-ui/src/app/api/vocabulary/[id]/route.ts` (DELETE handler)
+- [ ] T069 Add delete functionality to VocabularyList component (delete button with confirmation)
+- [ ] T070 Add search/filter functionality to vocabulary list (search by word, tags, notes per contract)
+- [ ] T071 [P] Create loading.tsx for vocabulary list page (skeleton UI during data fetch)
+- [ ] T072 [P] Add proper TypeScript types throughout (ensure no `any` types, use Zod inferred types)
+- [ ] T073 Optimize bundle size (verify <200KB initial load per research.md performance goal)
+- [ ] T074 [P] Add proper ARIA labels and semantic HTML for accessibility (per research.md best practices)
+- [ ] T075 Add keyboard navigation support (tab order, enter to submit, esc to close modals)
+- [ ] T076 Implement proper focus management (autofocus on input field, return focus after modals)
+- [ ] T077 [P] Create README.md in `grimoire-ui/` directory with setup instructions
+- [ ] T078 Test full workflow end-to-end (lookup, edit, save, view vocabulary, delete) to verify SC-002 (60-second completion)
+- [ ] T079 Verify performance targets (SC-001: 3-second lookup, SC-004: 1-second errors)
+- [ ] T080 Run quickstart.md validation (follow setup steps, verify all features work)
+
+---
+
+## Dependencies & Execution Order
+
+### Phase Dependencies
+
+- **Setup (Phase 1)**: No dependencies - can start immediately
+- **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
+- **User Story 1 (Phase 3)**: Depends on Foundational phase completion - No dependencies on other stories
+- **User Story 3 (Phase 4)**: Depends on Foundational phase completion - Builds on US1 but can be tested independently
+- **User Story 2 (Phase 5)**: Depends on Foundational and US3 - Enhances save functionality with editing
+- **User Story 4 (Phase 6)**: Depends on Foundational - Enhances error handling across all stories
+- **Polish (Phase 7)**: Depends on all user stories being complete
+
+### User Story Dependencies
+
+- **User Story 1 (P1)**: Can start after Foundational (Phase 2) - No dependencies on other stories. Delivers: Word lookup.
+- **User Story 3 (P1)**: Can start after Foundational (Phase 2) - Uses US1 components but independently testable. Delivers: Save functionality.
+- **User Story 2 (P2)**: Can start after US3 complete - Enhances save with editing. Delivers: Edit before save.
+- **User Story 4 (P2)**: Can start after Foundational (Phase 2) - Enhances error handling. Delivers: Better error UX.
+
+### Within Each User Story
+
+- Tasks marked [P] can run in parallel (different files)
+- Models/types before services/hooks
+- Hooks before components that use them
+- API routes before hooks that call them
+- Core implementation before integration
+- Story complete before moving to next priority
+
+### Parallel Opportunities
+
+**Phase 1 (Setup)**:
+- T003, T004, T005, T006, T007, T008 can all run in parallel
+
+**Phase 2 (Foundational)**:
+- T017, T018, T019, T020, T021 can run in parallel after database setup (T013-T016)
+
+**Phase 3 (US1)**:
+- T024, T025, T026, T027 can all run in parallel
+- T030, T031, T032, T033 can run in parallel after core implementation
+
+**Phase 4 (US3)**:
+- T034, T035, T036, T037 can run in parallel
+
+**Phase 5 (US2)**:
+- T046, T047 can run in parallel
+
+**Phase 6 (US4)**:
+- T057, T058 can run in parallel
+
+**Phase 7 (Polish)**:
+- T064, T065, T066, T067, T068, T071, T072, T074 can run in parallel
+
+**Cross-Story Parallelization**:
+- Once Foundational is complete, US1 and US4 can be worked on in parallel (different error handling aspects)
+- US2 requires US3, so they must be sequential
+
+---
+
+## Parallel Example: User Story 1
+
+```bash
+# After Foundational phase completes, launch these US1 tasks in parallel:
+
+Task 1: "Create Next.js API route for word lookup proxy at grimoire-ui/src/app/api/words/[word]/route.ts"
+Task 2: "Create WordLookupForm component in grimoire-ui/src/components/WordLookupForm.tsx"
+Task 3: "Create WordDisplay component in grimoire-ui/src/components/WordDisplay.tsx"
+Task 4: "Create useWordLookup custom hook in grimoire-ui/src/hooks/useWordLookup.ts"
+
+# Then integrate in home page (T028)
+# Then add enhancements in parallel:
+
+Task 1: "Add error handling to word lookup API route"
+Task 2: "Add loading indicator to WordLookupForm"
+Task 3: "Implement error display in WordDisplay component"
+Task 4: "Add caching to word lookup API route"
+```
+
+---
+
+## Parallel Example: Cross-Story (if multiple developers)
+
+```bash
+# After Foundational phase completes:
+
+Developer A: Start US1 (Word Lookup) - Tasks T024-T033
+Developer B: Start US4 (Error Handling foundations) - Tasks T057-T058
+
+# After US1 and US3 complete:
+
+Developer A: Start US2 (Edit functionality) - Tasks T046-T056
+Developer B: Continue US4 (Error enhancements) - Tasks T059-T063
+```
+
+---
+
+## Implementation Strategy
+
+### MVP First (User Stories 1 + 3 Only)
+
+1. Complete Phase 1: Setup (T001-T012)
+2. Complete Phase 2: Foundational (T013-T023) - CRITICAL BLOCKING PHASE
+3. Complete Phase 3: User Story 1 (T024-T033)
+4. **STOP and VALIDATE**: Test word lookup independently
+5. Complete Phase 4: User Story 3 (T034-T045)
+6. **STOP and VALIDATE**: Test end-to-end flow (lookup → save → view vocabulary)
+7. **MVP READY**: Core functionality complete (lookup and save words)
+8. Deploy/demo if ready
+
+**MVP delivers**:
+- Users can look up English words
+- Users can save words to their vocabulary
+- Users can view their saved vocabulary list
+- Basic error handling (from foundational error utilities)
+- ~48 hours of development work estimated
+
+### Incremental Delivery
+
+1. **Foundation** (Phases 1-2, T001-T023) → Database ready, types defined, project structure in place
+2. **MVP** (Phases 3-4, T024-T045) → Word lookup + Save functional → Deploy/Demo
+3. **Enhancement 1** (Phase 5, T046-T056) → Add editing capability → Deploy/Demo
+4. **Enhancement 2** (Phase 6, T057-T063) → Improved error handling → Deploy/Demo
+5. **Polish** (Phase 7, T064-T080) → Production-ready quality → Deploy/Demo
+
+Each delivery adds value without breaking previous functionality.
+
+### Parallel Team Strategy
+
+With 2 developers:
+
+1. **Together**: Complete Setup + Foundational (Phases 1-2)
+2. **Split once Foundational done**:
+   - **Dev A**: User Story 1 (Phase 3)
+   - **Dev B**: User Story 4 error foundations (Phase 6, T057-T058)
+3. **Merge and validate**: Test US1 works
+4. **Dev A continues**: User Story 3 (Phase 4)
+5. **Dev B continues**: User Story 4 enhancements (Phase 6, T059-T063)
+6. **Merge and validate**: Test MVP (US1 + US3) works
+7. **Dev A**: User Story 2 (Phase 5)
+8. **Dev B**: Polish tasks (Phase 7)
+9. **Together**: Final validation and deployment
+
+---
+
+## Task Count Summary
+
+| Phase | User Story | Task Count | Parallel Tasks | Estimated Effort |
+|-------|-----------|------------|----------------|------------------|
+| Phase 1 | Setup | 12 tasks | 6 parallel | 4 hours |
+| Phase 2 | Foundational | 11 tasks | 5 parallel | 8 hours |
+| Phase 3 | US1 (P1) | 10 tasks | 4 parallel | 12 hours |
+| Phase 4 | US3 (P1) | 12 tasks | 4 parallel | 12 hours |
+| Phase 5 | US2 (P2) | 11 tasks | 2 parallel | 10 hours |
+| Phase 6 | US4 (P2) | 7 tasks | 2 parallel | 6 hours |
+| Phase 7 | Polish | 17 tasks | 8 parallel | 14 hours |
+| **TOTAL** | | **80 tasks** | **31 parallel** | **~66 hours** |
+
+**MVP Scope** (US1 + US3): 45 tasks, ~36 hours
+**Full Feature**: 80 tasks, ~66 hours
+
+---
+
+## Independent Test Criteria per Story
+
+### US1 (Word Lookup) - Independent Test
+```
+1. Navigate to home page
+2. Enter "serendipity" in search box
+3. Click submit
+4. VERIFY: Word information displays (definition, pronunciation, examples, etc.)
+5. VERIFY: Results appear within 3 seconds (SC-001)
+6. VERIFY: Multiple meanings shown if word has multiple parts of speech
+7. VERIFY: Missing fields show "Not available" (FR-013)
+```
+
+### US3 (Save to Database) - Independent Test
+```
+1. Look up word "happiness"
+2. Click "Save to Vocabulary" button
+3. VERIFY: Success message displays (FR-011)
+4. Navigate to /vocabulary page
+5. VERIFY: "happiness" appears in vocabulary list
+6. Look up "happiness" again
+7. VERIFY: Duplicate indicator is shown (FR-008, SC-006)
+```
+
+### US2 (Edit Information) - Independent Test
+```
+1. Look up word "joy"
+2. Click on definition field
+3. VERIFY: Field becomes editable (US2 acceptance 1)
+4. Modify definition text
+5. VERIFY: Edited field is visually distinguished (FR-010, US2 acceptance 3)
+6. Clear pronunciation field to empty
+7. VERIFY: Empty value is allowed (clarification answer)
+8. Click save
+9. VERIFY: Changes persist in vocabulary
+10. VERIFY: Complete workflow takes <60 seconds (SC-002)
+```
+
+### US4 (Error Handling) - Independent Test
+```
+1. Enter "xyzabc123" (non-existent word)
+2. VERIFY: Error message displays within 1 second (SC-004)
+3. VERIFY: Message says "word not found" and suggests checking spelling (US4 acceptance 1)
+4. Enter empty string
+5. VERIFY: Validation prevents submission (FR-012, US4 acceptance 2)
+6. Disconnect network
+7. Try word lookup
+8. VERIFY: Network error message displays (US4 acceptance 3)
+```
+
+---
+
+## Notes
+
+- [P] tasks can run in parallel (different files, no dependencies)
+- [Story] label maps task to specific user story for traceability (US1, US2, US3, US4)
+- Each user story phase should be independently completable and testable
+- Tests are not included as they weren't explicitly requested - can be added later per research.md
+- Commit after each task or logical group of related tasks
+- Stop at any checkpoint to validate story independently
+- All file paths assume `grimoire-ui/` as the working directory
+- Follow research.md for all technical implementation details (Prisma setup, Zod validation, React Hook Form, etc.)
+- Follow data-model.md for exact database schema and validation rules
+- Follow contracts/api-routes.md for exact API endpoint specifications and error handling
+- Ensure Unicode support throughout (FR-012, clarification)
+- Maintain scrollable containers for long content (FR-003, clarification)
+- Allow empty field values (FR-004, clarification)
+
+---
+
+**Suggested Next Steps**:
+
+1. Start with MVP scope (US1 + US3): Tasks T001-T045
+2. Validate MVP independently before adding US2 and US4
+3. Deploy MVP for user feedback
+4. Add enhancements (US2, US4, Polish) based on feedback
