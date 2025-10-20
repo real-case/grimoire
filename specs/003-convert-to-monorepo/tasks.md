@@ -224,7 +224,7 @@ This project will transition to Nx monorepo structure:
 
 **Unified Installation:**
 
-- [ ] **T020** [US2] Update root README.md with monorepo installation instructions
+- [x] **T020** [US2] Update root README.md with monorepo installation instructions
   - Document: `npm install` (installs Nx + workspace tools)
   - Document: `cd apps/api && pip install -r requirements.txt` (API Python deps)
   - Document: `cd apps/ui && yarn install` (UI JavaScript deps)
@@ -232,7 +232,7 @@ This project will transition to Nx monorepo structure:
   - Target: <15 minute onboarding (SC-008)
   - Reference: quickstart.md (already created in planning phase)
 
-- [ ] **T021** [P] [US2] Create workspace-level installation script in root `package.json`
+- [x] **T021** [P] [US2] Create workspace-level installation script in root `package.json`
   - Add script: `"install:all": "npm install && cd apps/api && pip install -r requirements.txt && cd ../ui && yarn install"`
   - Add script: `"install:api": "cd apps/api && pip install -r requirements.txt"`
   - Add script: `"install:ui": "cd apps/ui && yarn install"`
@@ -240,13 +240,13 @@ This project will transition to Nx monorepo structure:
 
 **Consistent Tooling:**
 
-- [ ] **T022** [P] [US2] Configure workspace-level linting and formatting
+- [x] **T022** [P] [US2] Configure workspace-level linting and formatting
   - Update root `package.json` with scripts:
     - `"lint:all": "nx run-many --target=lint --all"`
     - `"format:all": "nx run api:format && nx run ui:format"`
   - Verify: `npm run lint:all` lints both API and UI (FR-014)
 
-- [ ] **T023** [P] [US2] Configure workspace-level testing commands
+- [x] **T023** [P] [US2] Configure workspace-level testing commands
   - Update root `package.json` with scripts:
     - `"test:all": "nx run-many --target=test --all"`
     - `"test:all:parallel": "nx run-many --target=test --all --parallel"`
@@ -254,7 +254,7 @@ This project will transition to Nx monorepo structure:
 
 **Docker and Docker Compose Updates:**
 
-- [ ] **T024** [US2] Update `docker-compose.yml` for monorepo paths
+- [x] **T024** [US2] Update `docker-compose.yml` for monorepo paths
   - Update API service `build.context` to `./apps/api`
   - Update API service `dockerfile` to `Dockerfile` (relative to context)
   - Update API service volume mounts: `./apps/api/src:/app/src`
@@ -262,14 +262,14 @@ This project will transition to Nx monorepo structure:
   - Keep database service unchanged (FR-012, A-007)
   - Reference: research.md section 4 (Docker integration)
 
-- [ ] **T025** [US2] Verify Docker builds work with new structure
+- [x] **T025** [US2] Verify Docker builds work with new structure
   - Test: `docker-compose build` succeeds for all services (SC-007)
   - Test: `docker-compose up` starts all services successfully
   - Test: Containers can access code at updated paths
 
 **Environment Variables:**
 
-- [ ] **T026** [US2] Standardize environment variable management
+- [x] **T026** [US2] Standardize environment variable management
   - Decide: Keep `.env` at root or separate per app
   - Update `.env.example` with monorepo context
   - Document environment variable locations in README.md
@@ -277,14 +277,14 @@ This project will transition to Nx monorepo structure:
 
 **Validation for User Story 2:**
 
-- [ ] **T027** [US2] Test unified installation workflow
+- [x] **T027** [US2] Test unified installation workflow
   - Clone repository fresh (or simulate)
   - Run: `npm install` (Nx workspace setup)
   - Run: `npm run install:all` (all dependencies)
   - Verify: Completes in <5 minutes on standard machine (SC-003)
   - Verify: Both apps can start after installation
 
-- [ ] **T028** [US2] Test workspace-level commands
+- [x] **T028** [US2] Test workspace-level commands
   - Run: `nx run-many --target=lint --all` (FR-014)
   - Run: `nx run-many --target=test --all`
   - Verify: Both applications processed correctly
