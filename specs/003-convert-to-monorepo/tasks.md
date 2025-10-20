@@ -307,14 +307,14 @@ This project will transition to Nx monorepo structure:
 
 **Affected Detection Configuration:**
 
-- [ ] **T029** [P] [US3] Verify affected detection inputs in `apps/api/project.json`
+- [x] **T029** [P] [US3] Verify affected detection inputs in `apps/api/project.json`
   - Confirm `inputs` configured in T010 are correct
   - Test: Change `apps/api/src/models/word.py`
   - Run: `nx affected:graph --base=main`
   - Verify: Only API marked as affected (FR-009)
   - Reference: research.md section 3 (affected detection)
 
-- [ ] **T030** [P] [US3] Verify affected detection inputs in `apps/ui/project.json`
+- [x] **T030** [P] [US3] Verify affected detection inputs in `apps/ui/project.json`
   - Confirm `inputs` configured in T015 are correct
   - Test: Change `apps/ui/src/app/page.tsx`
   - Run: `nx affected:graph --base=main`
@@ -322,7 +322,7 @@ This project will transition to Nx monorepo structure:
 
 **CI/CD Workflow Updates:**
 
-- [ ] **T031** [US3] Update GitHub Actions workflow at `.github/workflows/ci.yml`
+- [x] **T031** [US3] Update GitHub Actions workflow at `.github/workflows/ci.yml`
   - Add `fetch-depth: 0` to checkout step (required for affected)
   - Add Node.js setup step (for Nx)
   - Add Python setup step (for API)
@@ -331,17 +331,17 @@ This project will transition to Nx monorepo structure:
     - `npx nx run-many --target=test --all` (for main branch)
   - Reference: research.md section 6 (CI/CD integration)
 
-- [ ] **T032** [P] [US3] Update GitHub Actions workflow at `.github/workflows/pr-assistant.yml` (if exists)
+- [x] **T032** [P] [US3] Update GitHub Actions workflow at `.github/workflows/pr-assistant.yml` (if exists)
   - Update to use Nx affected detection
   - Ensure compatible with monorepo structure
 
-- [ ] **T033** [P] [US3] Update GitHub Actions workflow at `.github/workflows/code-review.yml` (if exists)
+- [x] **T033** [P] [US3] Update GitHub Actions workflow at `.github/workflows/code-review.yml` (if exists)
   - Update to use Nx affected detection
   - Ensure linting uses `nx affected:lint --base=origin/main`
 
 **Local Affected Commands:**
 
-- [ ] **T034** [US3] Add affected detection scripts to root `package.json`
+- [x] **T034** [US3] Add affected detection scripts to root `package.json`
   - `"affected:test": "nx affected --target=test --base=main"`
   - `"affected:build": "nx affected --target=build --base=main"`
   - `"affected:lint": "nx affected --target=lint --base=main"`
@@ -349,7 +349,7 @@ This project will transition to Nx monorepo structure:
 
 **Validation for User Story 3:**
 
-- [ ] **T035** [US3] Test affected detection with API-only changes
+- [x] **T035** [US3] Test affected detection with API-only changes
   - Change: `apps/api/src/services/word_service.py`
   - Run: `nx affected:test --base=main --dry-run`
   - Verify: Only API tests in execution plan
@@ -357,7 +357,7 @@ This project will transition to Nx monorepo structure:
   - Verify: UI tests skipped, API tests run
   - Measure: Time saved vs. full test run
 
-- [ ] **T036** [US3] Test affected detection with UI-only changes
+- [x] **T036** [US3] Test affected detection with UI-only changes
   - Change: `apps/ui/src/components/WordDisplay.tsx`
   - Run: `nx affected:test --base=main --dry-run`
   - Verify: Only UI tests in execution plan
@@ -365,12 +365,12 @@ This project will transition to Nx monorepo structure:
   - Verify: API tests skipped, UI tests run
   - Measure: Time saved vs. full test run
 
-- [ ] **T037** [US3] Test affected detection with shared config changes
+- [x] **T037** [US3] Test affected detection with shared config changes
   - Change: Root `nx.json` or `docker-compose.yml`
   - Run: `nx affected:test --base=main --dry-run`
   - Verify: Both API and UI tests in execution plan (correct behavior)
 
-- [ ] **T038** [US3] Validate CI pipeline efficiency gains
+- [x] **T038** [US3] Validate CI pipeline efficiency gains
   - Create test PR with API-only changes
   - Verify: CI runs only affected tests
   - Measure: Pipeline time reduction
@@ -385,7 +385,7 @@ This project will transition to Nx monorepo structure:
 
 **Purpose**: Documentation, cleanup, and final validation across all user stories
 
-- [ ] **T039** [P] [POLISH] Update root README.md with complete monorepo documentation
+- [x] **T039** [P] [POLISH] Update root README.md with complete monorepo documentation
   - Replace old structure references with new `apps/api` and `apps/ui`
   - Add "Quick Start" section linking to quickstart.md (already exists)
   - Add command reference table (old commands → Nx commands)
@@ -393,35 +393,35 @@ This project will transition to Nx monorepo structure:
   - Reference: research.md section 7 (developer workflow)
   - Target: Enable 15-minute onboarding (SC-008)
 
-- [ ] **T040** [P] [POLISH] Verify quickstart.md is up-to-date
+- [x] **T040** [P] [POLISH] Verify quickstart.md is up-to-date
   - Quickstart.md already created in planning phase
   - Verify all commands work as documented
   - Test against validation script from T004
   - Verify migration guide section is accurate
 
-- [ ] **T041** [P] [POLISH] Update CLAUDE.md with monorepo commands
+- [x] **T041** [P] [POLISH] Update CLAUDE.md with monorepo commands
   - Already updated in planning phase
   - Verify Nx commands are documented
   - Verify project structure is accurate
 
-- [ ] **T042** [P] [POLISH] Add migration rollback documentation
+- [x] **T042** [P] [POLISH] Add migration rollback documentation
   - Document rollback procedure in README.md or MIGRATION.md
   - Reference: research.md section 5 (rollback plan)
   - Explain: How to revert merge commit if critical issues found (A-009)
 
-- [ ] **T043** [P] [POLISH] Clean up old configuration files
+- [x] **T043** [P] [POLISH] Clean up old configuration files
   - Remove old root-level files no longer needed:
     - Old `package.json` entries specific to grimoire-ui (if moved)
     - Old scripts that are now Nx tasks
   - Keep: `docker-compose.yml` (updated), `.env`, `.gitignore` (updated)
 
-- [ ] **T044** [P] [POLISH] Verify Nx graph visualization works
+- [x] **T044** [P] [POLISH] Verify Nx graph visualization works
   - Run: `nx graph`
   - Verify: Shows both `api` and `ui` applications
   - Verify: Shows no incorrect dependencies between them
   - Verify: Graph opens in browser successfully
 
-- [ ] **T045** [POLISH] Run complete validation script from T004
+- [x] **T045** [POLISH] Run complete validation script from T004
   - Execute: `./scripts/validate-migration.sh`
   - All checks must pass:
     - ✅ `nx run api:test` - All API tests pass (SC-005)
@@ -432,7 +432,7 @@ This project will transition to Nx monorepo structure:
     - ✅ `nx affected:test --base=main` - Affected works
     - ✅ Git history preserved (A-003)
 
-- [ ] **T046** [POLISH] Create migration commit and PR
+- [x] **T046** [POLISH] Create migration commit and PR
   - Commit all changes with message referencing migration
   - Push to feature branch `003-convert-to-monorepo`
   - Create PR with:
