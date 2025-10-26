@@ -7,6 +7,9 @@ import WordLookupForm from '@/components/WordLookupForm'
 import WordDisplay from '@/components/WordDisplay'
 import Link from 'next/link'
 
+// Force dynamic rendering to avoid pre-rendering errors with client-side hooks
+export const dynamic = 'force-dynamic'
+
 export default function Home() {
   const { wordData, isLoading, error, retryable, lookupWord, retry } = useWordLookup()
   const { saveWord } = useVocabulary()
