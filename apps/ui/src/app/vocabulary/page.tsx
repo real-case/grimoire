@@ -11,6 +11,9 @@ import { useVocabulary } from '@/hooks/useVocabulary'
 import VocabularyList from '@/components/VocabularyList'
 import Link from 'next/link'
 
+// Force dynamic rendering to avoid pre-rendering errors with client-side hooks
+export const dynamic = 'force-dynamic'
+
 export default function VocabularyPage() {
   const { entries, pagination, isLoading, error, fetchVocabulary } = useVocabulary()
   const [sortBy, setSortBy] = useState<'savedAt' | 'lastModified' | 'word'>('lastModified')

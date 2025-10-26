@@ -34,7 +34,7 @@ services:
 
   api:
     build:
-      context: .
+      context: ./apps/api
       dockerfile: Dockerfile
     container_name: grimoire-api
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
@@ -46,7 +46,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://grimoire_user:password@postgres:5432/grimoire
       REDIS_URL: redis://redis:6379/0
     volumes:
-      - .:/app
+      - ./apps/api:/app
       - /app/__pycache__
       - /app/.venv
     depends_on:

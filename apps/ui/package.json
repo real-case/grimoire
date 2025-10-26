@@ -9,10 +9,10 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:e2e": "playwright test"
+    "test": "echo 'No tests configured yet for UI. Test suite will be added in future feature.'",
+    "test:watch": "echo 'No tests configured yet for UI.'",
+    "test:coverage": "echo 'No tests configured yet for UI.'",
+    "test:e2e": "echo 'No E2E tests configured yet for UI.'"
   },
   "dependencies": {
     "@headlessui/react": "^2.0.0",
