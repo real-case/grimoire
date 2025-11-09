@@ -46,10 +46,18 @@ jobs:
 
       - name: Run affected tests (PR)
         if: github.event_name == 'pull_request'
+        env:
+          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379/0
+          ANTHROPIC_API_KEY: test-api-key-for-ci
         run: npx nx affected --target=test --base=origin/main --parallel=2
 
       - name: Run all tests (main branch)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379/0
+          ANTHROPIC_API_KEY: test-api-key-for-ci
         run: npx nx run-many --target=test --all --parallel=2
 
       - name: Run affected lint (PR)
